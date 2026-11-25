@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liga de Básquetbol | Gestión</title>
+  <style>
+    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#172033;background:#f2f5fa}
+    *{box-sizing:border-box}body{margin:0}header{background:#14243d;color:white;padding:28px max(20px,calc((100% - 1100px)/2));}
+    header h1{margin:0;font-size:clamp(1.5rem,3vw,2.3rem)}header p{opacity:.85}main{max-width:1100px;margin:24px auto;padding:0 16px}
+    nav{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}nav button{border:1px solid #cbd5e1;background:white;color:#233b5a;padding:10px 17px;border-radius:9px;font-weight:650;cursor:pointer}
+    nav button.active{background:#e76f21;color:white;border-color:#e76f21}.panel{background:white;border-radius:14px;padding:22px;margin:18px 0;box-shadow:0 4px 20px #18243e0c}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:15px}.metric{background:#f5f7fb;border-radius:9px;padding:18px}.metric strong{display:block;font-size:2rem;color:#c55312}
+    h2{margin:0 0 15px}h3{margin:0 0 10px}label{display:block;font-weight:650;margin:10px 0 5px}input,select{padding:10px;border:1px solid #abb8c9;border-radius:8px;width:100%;font:inherit}
+    button.primary{background:#d75f19;color:#fff;border:0;border-radius:8px;padding:11px 18px;font-weight:700;cursor:pointer;margin-top:14px}
+    button.danger{background:#fff2ec;color:#a93c00;border:1px solid #e7b7a0;border-radius:6px;padding:6px 10px;cursor:pointer}
+    .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}table{width:100%;border-collapse:collapse;min-width:580px}th,td{border-bottom:1px solid #e3e8ef;padding:12px;text-align:left}th{background:#f2f5fa}
+    .table-wrap{overflow-x:auto}.small{font-size:.9rem;color:#536275}.notice{padding:12px;background:#fff7ed;color:#8b4515;border-radius:8px}
+    [hidden]{display:none!important}footer{text-align:center;padding:22px;color:#5b6475}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #faaa65}
+  </style>
+</head>
+<body>
+<header><h1>🏀 Liga de Básquetbol</h1><p>Gestión de equipos, encuentros, resultados y clasificación · Ingeniería de Software II</p></header>
+<main>
+  <nav aria-label="Secciones">
+    <button class="active" data-tab="inicio">Inicio</button>
+    <button data-tab="equipos">Equipos</button>
+    <button data-tab="partidos">Partidos</button>
+    <button data-tab="clasificacion">Clasificación</button>
+  </nav>
+  <section id="inicio" class="tab">
+    <div class="panel"><h2>Resumen de la liga</h2><div class="grid">
+      <div class="metric">Equipos registrados<strong id="num-equipos">0</strong></div>
+      <div class="metric">Partidos programados<strong id="num-partidos">0</strong></div>
+      <div class="metric">Partidos finalizados<strong id="num-finalizados">0</strong></div>
+    </div></div>
+    <div class="panel"><h2>Primeros pasos</h2><p>Registra al menos dos equipos, programa un partido, guarda el resultado y consulta la tabla de clasificación.</p><p class="notice">Esta versión académica guarda los datos en el navegador mediante localStorage. Para trabajo multiusuario se necesitará un servidor y base de datos.</p></div>
+  </section>
+  <section id="equipos" class="tab" hidden>
+    <div class="panel"><h2>Registrar equipo</h2>
+      <form id="form-equipo"><div class="form-grid">
+        <div><label for="nombre">Nombre del equipo</label><input id="nombre" name="nombre" maxlength="60" required placeholder="Ej. Cóndores"></div>
+        <div><label for="entrenador">Entrenador</label><input id="entrenador" name="entrenador" maxlength="60" required placeholder="Ej. Ana Pérez"></div>
+        <div><label for="ciudad">Ciudad</label><input id="ciudad" name="ciudad" maxlength="60" required placeholder="Ej. Abancay"></div>
+      </div><button class="primary">Agregar equipo</button></form></div>
+    <div class="panel"><h2>Equipos registrados</h2><div class="table-wrap"><table><thead><tr><th>Equipo</th><th>Entrenador</th><th>Ciudad</th><th>Acciones</th></tr></thead><tbody id="lista-equipos"></tbody></table></div></div>
+  </section>
+  <section id="partidos" class="tab" hidden>
+    <div class="panel"><h2>Programar partido</h2>
+      <form id="form-partido"><div class="form-grid">
+        <div><label for="local">Equipo local</label><select id="local" required></select></div>
+        <div><label for="visitante">Equipo visitante</label><select id="visitante" required></select></div>
+        <div><label for="fecha">Fecha y hora</label><input type="datetime-local" id="fecha" required></div>
+      </div><button class="primary">Programar</button></form></div>
+    <div class="panel"><h2>Calendario y resultados</h2><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Encuentro</th><th>Marcador</th><th>Estado</th><th>Acción</th></tr></thead><tbody id="lista-partidos"></tbody></table></div></div>
+  </section>
+  <section id="clasificacion" class="tab" hidden>
+    <div class="panel"><h2>Tabla de posiciones</h2><p class="small">Victoria: 2 puntos · Derrota: 1 punto · Partido no jugado: 0 puntos. Los empates no son válidos en básquetbol.</p>
+      <div class="table-wrap"><table><thead><tr><th>Pos.</th><th>Equipo</th><th>PJ</th><th>PG</th><th>PP</th><th>PF</th><th>PC</th><th>Dif.</th><th>Puntos</th></tr></thead><tbody id="tabla-posiciones"></tbody></table></div>
+    </div>
+  </section>
+</main>
+<footer>Proyecto académico · GitFlow + GitHub · Datos guardados localmente</footer>
+<script>
+(() => {
+  const KEY='liga-basquetbol-is2-v1';
+  const empty=()=>({equipos:[],partidos:[]});
+  let db;
+  try { const raw=JSON.parse(localStorage.getItem(KEY)); db=raw&&Array.isArray(raw.equipos)&&Array.isArray(raw.partidos)?raw:empty(); } catch { db=empty(); }
+  const $=id=>document.getElementById(id);
+  const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
+  const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const team=id=>db.equipos.find(t=>t.id===id)?.nombre||'(equipo eliminado)';
+  const id=()=>globalThis.crypto?.randomUUID?.() || String(Date.now())+Math.random().toString(36).slice(2);
+  const show=section=>{document.querySelectorAll('.tab').forEach(s=>s.hidden=s.id!==section);document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===section));render()};
+  document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.tab)));
+  $('form-equipo').addEventListener('submit',event=>{
+    event.preventDefault();const nombre=$('nombre').value.trim(),entrenador=$('entrenador').value.trim(),ciudad=$('ciudad').value.trim();
+    if(!nombre||!entrenador||!ciudad)return;
+    if(db.equipos.some(t=>t.nombre.toLowerCase()===nombre.toLowerCase()))return alert('Ese equipo ya existe.');
+    db.equipos.push({id:id(),nombre,entrenador,ciudad});save();event.target.reset();render();
+  });
+  $('form-partido').addEventListener('submit',event=>{
+    event.preventDefault();const local=$('local').value,visitante=$('visitante').value,fecha=$('fecha').value;
+    if(!local||!visitante||!fecha)return alert('Completa todos los campos.');
+    if(local===visitante)return alert('Elige dos equipos diferentes.');
+    if(!db.equipos.some(t=>t.id===local)||!db.equipos.some(t=>t.id===visitante))return alert('Selecciona equipos válidos.');
+    db.partidos.push({id:id(),local,visitante,fecha,puntosLocal:null,puntosVisitante:null});save();event.target.reset();render();
+  });
+  $('lista-equipos').addEventListener('click',e=>{
+    const b=e.target.closest('[data-remove-team]');if(!b)return;
+    if(db.partidos.some(p=>p.local===b.dataset.removeTeam||p.visitante===b.dataset.removeTeam))return alert('El equipo tiene partidos asociados; elimina primero esos partidos.');
+    if(!confirm('¿Eliminar este equipo?'))return;db.equipos=db.equipos.filter(t=>t.id!==b.dataset.removeTeam);save();render();
+  });
+  $('lista-partidos').addEventListener('click',e=>{
+    const del=e.target.closest('[data-remove-match]');
+    if(del){if(!confirm('¿Eliminar el partido?'))return;db.partidos=db.partidos.filter(p=>p.id!==del.dataset.removeMatch);save();render();return;}
+    const edit=e.target.closest('[data-score]');if(!edit)return;
+    const p=db.partidos.find(p=>p.id===edit.dataset.score);if(!p)return;
+    const a=prompt('Puntos del equipo local ('+team(p.local)+'):',p.puntosLocal??'');
+    if(a===null)return;const b=prompt('Puntos del visitante ('+team(p.visitante)+'):',p.puntosVisitante??'');
+    if(b===null)return;
+    if(!/^\d+$/.test(a)||!/^\d+$/.test(b)||Number(a)>999||Number(b)>999)return alert('Introduce marcadores enteros entre 0 y 999.');
+    if(Number(a)===Number(b))return alert('No se admiten empates en el resultado final.');
+    p.puntosLocal=Number(a);p.puntosVisitante=Number(b);save();render();
+  });
+  function render(){
+    $('num-equipos').textContent=db.equipos.length;
+    $('num-partidos').textContent=db.partidos.length;
+    $('num-finalizados').textContent=db.partidos.filter(p=>p.puntosLocal!==null&&p.puntosVisitante!==null).length;
+    $('lista-equipos').innerHTML=db.equipos.map(t=>`<tr><td>${safe(t.nombre)}</td><td>${safe(t.entrenador)}</td><td>${safe(t.ciudad)}</td><td><button class="danger" data-remove-team="${safe(t.id)}">Eliminar</button></td></tr>`).join('')||'<tr><td colspan="4">Todavía no hay equipos registrados.</td></tr>';
+    for(const sel of ['local','visitante']){const old=$(sel).value;$(sel).innerHTML='<option value="">Seleccionar equipo</option>'+db.equipos.map(t=>`<option value="${safe(t.id)}">${safe(t.nombre)}</option>`).join('');$(sel).value=old;}
+    const games=[...db.partidos].sort((a,b)=>a.fecha.localeCompare(b.fecha));
+    $('lista-partidos').innerHTML=games.map(p=>{const ended=p.puntosLocal!==null&&p.puntosVisitante!==null;return `<tr><td>${safe(p.fecha.replace('T',' '))}</td><td>${safe(team(p.local))} vs. ${safe(team(p.visitante))}</td><td>${ended?`${p.puntosLocal} - ${p.puntosVisitante}`:'—'}</td><td>${ended?'Finalizado':'Programado'}</td><td><button class="primary" style="margin:0;padding:6px 9px" data-score="${safe(p.id)}">${ended?'Editar marcador':'Registrar resultado'}</button> <button class="danger" data-remove-match="${safe(p.id)}">Eliminar</button></td></tr>`}).join('')||'<tr><td colspan="5">No hay partidos programados.</td></tr>';
+    const stats=db.equipos.map(t=>({id:t.id,nombre:t.nombre,pj:0,pg:0,pp:0,pf:0,pc:0,puntos:0}));
+    for(const p of db.partidos){if(p.puntosLocal===null||p.puntosVisitante===null)continue;const a=stats.find(t=>t.id===p.local),b=stats.find(t=>t.id===p.visitante);if(!a||!b)continue;a.pj++;b.pj++;a.pf+=p.puntosLocal;a.pc+=p.puntosVisitante;b.pf+=p.puntosVisitante;b.pc+=p.puntosLocal;const winner=p.puntosLocal>p.puntosVisitante?a:b,loser=winner===a?b:a;winner.pg++;winner.puntos+=2;loser.pp++;loser.puntos++;}
+    stats.sort((a,b)=>b.puntos-a.puntos||(b.pf-b.pc)-(a.pf-a.pc)||b.pf-a.pf||a.nombre.localeCompare(b.nombre));
+    $('tabla-posiciones').innerHTML=stats.map((t,i)=>`<tr><td>${i+1}</td><td>${safe(t.nombre)}</td><td>${t.pj}</td><td>${t.pg}</td><td>${t.pp}</td><td>${t.pf}</td><td>${t.pc}</td><td>${t.pf-t.pc}</td><td><strong>${t.puntos}</strong></td></tr>`).join('')||'<tr><td colspan="9">Registra equipos para ver la clasificación.</td></tr>';
+  }
+  render();
+})();
+</script>
+</body>
+</html>
